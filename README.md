@@ -12,9 +12,12 @@ A simplified RAG (Retrieval-Augmented Generation) chatbot that uses local LLMs v
 
 ## Prerequisites
 
-1. **Install Ollama**: Download and install from [ollama.com](https://ollama.com)
-2. **Pull a Model**: Run `ollama pull gemma3:1b` (or any other supported model)
-3. **Add Your PDF**: Place your PDF file at `documents/document.pdf`
+1. Install Python 3.10+
+2. Install Ollama: download from [ollama.com](https://ollama.com)
+3. Pull a model (default is Gemma):
+   - `ollama pull gemma3:1b`
+   - To use Meta Llama instead: `ollama pull llama3.2` (or `llama3.1`)
+4. Add your PDF at `documents/document.pdf`
 
 ## Installation
 
@@ -36,9 +39,10 @@ A simplified RAG (Retrieval-Augmented Generation) chatbot that uses local LLMs v
 
 ## Usage
 
-1. **Place your PDF**: Put your PDF file at `documents/document.pdf`
-2. **Start the app**: Run `streamlit run main.py`
-3. **Start Chatting**: Ask questions about your document!
+1. Place your PDF at `documents/document.pdf`
+2. Start the app: `streamlit run main.py`
+3. In the sidebar, verify "Chunks indexed" is > 0 (otherwise click "Reload Document")
+4. Start chatting
 
 The system will automatically:
 - Load your PDF on startup
@@ -49,6 +53,25 @@ The system will automatically:
 
 
 Make sure to pull the model first: `ollama pull <model-name>`
+
+### Change the local model (Gemma ↔ Llama)
+
+1. Pull the desired model with Ollama:
+   Examples:
+   - Gemma: `ollama pull gemma3:1b`
+   - Llama: `ollama pull llama3.2`
+   - Mistral: `ollama pull mistral`
+   - Codellama: `ollama pull codellama`
+   - Phi3: `ollama pull phi3`
+
+2. Edit the model name in code. Open `src/ui/app.py` and change:
+
+   ```python
+   # src/ui/app.py
+   model_name = "gemma3:1b"  # change to "llama3.2" or another pulled model
+   ```
+
+3. Restart the app: `streamlit run main.py`
 
 ## Project Structure
 
