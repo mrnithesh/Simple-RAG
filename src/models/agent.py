@@ -1,7 +1,8 @@
 from typing import Optional
 
 from langchain_ollama import ChatOllama
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.messages import HumanMessage, AIMessage
 from langchain_core.documents import Document
 
 
@@ -23,6 +24,7 @@ Retrieved Context:
 
     prompt = ChatPromptTemplate.from_messages([
         ("system", system_prompt),
+        MessagesPlaceholder(variable_name="history"),
         ("human", "{question}"),
     ])
 
@@ -30,9 +32,28 @@ Retrieved Context:
 
     def chat_with_documents(query: str, _chat_history: Optional[list] = None) -> str:
         try:
+            # Prepare history for the chat model (map simple dicts to LangChain messages)
+            history_messages = []
+            if isinstance(_chat_history, list) and _chat_history:
+                # Keep the last 12 turns max (24 messages) to limit context size
+                recent_history = _chat_history[-24:]
+                for message in recent_history:
+                    role = message.get("role")
+                    content = message.get("content", "")
+                    if not content:
+                        continue
+                    if role == "user":
+                        history_messages.append(HumanMessage(content=content))
+                    elif role == "assistant":
+                        history_messages.append(AIMessage(content=content))
+
             docs: list[Document] = retriever.invoke(query)
             if not docs:
-                response = chain.invoke({"context": "", "question": query})
+                response = chain.invoke({
+                    "context": "",
+                    "question": query,
+                    "history": history_messages,
+                })
                 return response.content
 
             def format_doc(d: Document, idx: int) -> str:
@@ -41,7 +62,11 @@ Retrieved Context:
                 return f"{prefix}\n{d.page_content.strip()}"
 
             context = "\n\n---\n\n".join(format_doc(d, i) for i, d in enumerate(docs))
-            response = chain.invoke({"context": context, "question": query})
+            response = chain.invoke({
+                "context": context,
+                "question": query,
+                "history": history_messages,
+            })
             return response.content
         except Exception as e:
             return f"Sorry, I encountered an error: {str(e)}"

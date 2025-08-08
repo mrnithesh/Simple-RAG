@@ -115,7 +115,7 @@ def main():
         with st.chat_message("assistant"):
             with st.spinner("🤔 Analyzing document and generating response..."):
                 try:
-                    response = st.session_state._agent(query)
+                    response = st.session_state._agent(query, st.session_state.chat_history)
                     st.write(response)
 
                     st.session_state.chat_history.append({"role": "assistant", "content": response})
