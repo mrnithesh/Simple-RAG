@@ -41,7 +41,7 @@ def main():
     # Sidebar for model settings
     with st.sidebar:
         st.header("🤖 Model Settings")
-        model_name = "gemma3:1b"
+        model_name = "gemma3:12b"
         
         st.markdown("---")
         st.markdown("### 📄 Document Info")
@@ -71,12 +71,7 @@ def main():
     if not st.session_state.chat_history:
         st.markdown("""
         ### 👋 Welcome!
-        I'm ready to answer questions about your document. You can ask me:
-        - **Summarize** specific sections or the entire document
-        - **Find information** about particular topics
-        - **Explain concepts** mentioned in the document
-        - **Extract key points** or important details
-        
+        I'm ready to answer questions         
         Just type your question below to get started!
         """)
 
@@ -89,7 +84,7 @@ def main():
                 st.write(content)
 
     # Chat input
-    if query := st.chat_input("Ask a question about the document..."):
+    if query := st.chat_input("Ask a question..."):
         # Add user message to chat
         with st.chat_message("user"):
             st.write(query)
@@ -113,7 +108,7 @@ def main():
 
         # Generate response
         with st.chat_message("assistant"):
-            with st.spinner("🤔 Analyzing document and generating response..."):
+            with st.spinner("🤔 THINKING..."):
                 try:
                     response = st.session_state._agent(query, st.session_state.chat_history)
                     st.write(response)

@@ -8,17 +8,21 @@ from langchain_core.documents import Document
 
 def get_simple_chat_agent(vectorstore, model_name: str = "gemma3:1b"):
 
-    llm = ChatOllama(model=model_name, temperature=0.4)
-    retriever = vectorstore.as_retriever(search_kwargs={"k": 5, "fetch_k": 20}, search_type="mmr")
+    llm = ChatOllama(model=model_name, temperature=0.4)  
+    retriever = vectorstore.as_retriever(search_kwargs={"k": 20, "fetch_k": 50}, search_type="mmr")  
 
-    system_prompt = """You are a helpful assistant that answers questions based on the provided document context.
+    system_prompt = """You are a knowledgeable assistant with comprehensive expertise on the topics being discussed. Answer questions thoroughly and in detail.
 
-Instructions:
-- Use ONLY the retrieved context to answer. If missing, say you don't know.
-- Cite quotes or page numbers from the context to support key points.
-- Provide a concise, structured answer.
+Critical Instructions:
+- Provide complete, comprehensive answers that include ALL relevant details and information available
+- Present information as your own knowledge - NEVER mention documents, context, sources, or references
+- NEVER use phrases like "based on the document", "according to the text", "the document states","based on the provided information" or similar
+- Include specific details, examples, numbers, processes, and explanations in your responses
+- Organize information clearly with proper structure and flow
+- If you don't have sufficient information, simply state that you don't know that particular detail
+- Answer as if you are an expert who naturally possesses this knowledge
 
-Retrieved Context:
+Available Information:
 {context}
 """
 
@@ -57,11 +61,11 @@ Retrieved Context:
                 return response.content
 
             def format_doc(d: Document, idx: int) -> str:
-                page = d.metadata.get("page")
-                prefix = f"[Doc {idx+1}{f', p.{page+1}' if isinstance(page, int) else ''}]"
-                return f"{prefix}\n{d.page_content.strip()}"
+                # Remove document reference formatting to avoid leaking source info
+                return d.page_content.strip()
 
-            context = "\n\n---\n\n".join(format_doc(d, i) for i, d in enumerate(docs))
+            # Combine all context without document markers
+            context = "\n\n".join(format_doc(d, i) for i, d in enumerate(docs))
             response = chain.invoke({
                 "context": context,
                 "question": query,
